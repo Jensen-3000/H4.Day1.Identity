@@ -41,6 +41,11 @@ builder.Services.AddAuthorizationBuilder()
         policy.RequireAuthenticatedUser();
     });
 
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequiredLength = 8;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
