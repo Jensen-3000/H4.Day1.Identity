@@ -1,5 +1,7 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize(Policy = "AuthenticatedUser")]
 
 <PageTitle>Home</PageTitle>
 
