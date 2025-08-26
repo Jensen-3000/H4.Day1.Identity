@@ -51,6 +51,10 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredLength = 8;
 });
 
+var todoConnectionString = builder.Configuration.GetConnectionString("TodoDbConnection") ?? throw new InvalidOperationException("Connection string 'TodoDbConnection' not found.");
+builder.Services.AddDbContext<TodoDbContext>(options =>
+    options.UseSqlServer(todoConnectionString));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
