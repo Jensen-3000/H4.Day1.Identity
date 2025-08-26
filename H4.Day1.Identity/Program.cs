@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using H4.Day1.Identity.Components;
 using H4.Day1.Identity.Components.Account;
 using H4.Day1.Identity.Data;
@@ -54,6 +55,23 @@ builder.Services.Configure<IdentityOptions>(options =>
 var todoConnectionString = builder.Configuration.GetConnectionString("TodoDbConnection") ?? throw new InvalidOperationException("Connection string 'TodoDbConnection' not found.");
 builder.Services.AddDbContext<TodoDbContext>(options =>
     options.UseSqlServer(todoConnectionString));
+
+builder.WebHost.UseKestrel(((context, options) =>
+{
+    options.Configure(context.Configuration.GetSection("Kestrel"))
+        .Endpoint("HTTPS", listenOptions =>
+    {
+        listenOptions.HttpsOptions.SslProtocols = SslProtocols.Tls13;
+    });
+}));
+
+string kestrelCertUrl = builder.Configuration.GetValue<string>("KestrelCertUrl")
+    .Replace("%USERPROFILE%", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+
+string kestrelCertPassword = builder.Configuration.GetValue<string>("KestrelCertPassword");
+
+builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Path").Value = kestrelCertUrl;
+builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Password").Value = kestrelCertPassword;
 
 var app = builder.Build();
 
