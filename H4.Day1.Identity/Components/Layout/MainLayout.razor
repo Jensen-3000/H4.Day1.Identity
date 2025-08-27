@@ -1,24 +1,88 @@
 ﻿@inherits LayoutComponentBase
 
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider _authenticationStateProvider;
+
+@implements IDisposable
+
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
     <main>
         <div class="top-row px-4">
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-            <a href="/AddRole">Add Role</a>
+            <AuthorizeView>
+                <Authorized>
+                    <NavLink href="Account/Manage">
+                        @if (_userRoles != null && _userRoles.Trim() != "")
+                        {
+                            <span aria-hidden="true"></span> 
+                            @context.User.Identity?.Name<text>&nbsp;(@_userRoles)</text>
+                        }
+                        else
+                        {
+                            <span aria-hidden="true"></span> 
+                            @context.User.Identity?.Name
+                        }
+                    </NavLink>
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                        <button type="submit" style="border:none;background-color:transparent;color:blue;margin-left:8px;">
+                            <span aria-hidden="true"></span> Logout
+                        </button>
+                    </form>
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink href="Account/Register">
+                        <span aria-hidden="true"></span> Register
+                    </NavLink>
+                    <NavLink href="Account/Login">
+                        <span aria-hidden="true"></span> Login
+                    </NavLink>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
 
-        <article class="content px-4">
+        <article style="width:100%;text-align:center;">
             @Body
         </article>
     </main>
 </div>
 
-<div id="blazor-error-ui" data-nosnippet>
+<div id="blazor-error-ui">
     An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private string? currentUrl;
+    private string? _userRoles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        List<string> roles = user.Claims
+            .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        _userRoles = string.Join(", ", roles);
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
