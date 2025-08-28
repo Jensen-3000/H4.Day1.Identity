@@ -57,22 +57,25 @@ var todoConnectionString = builder.Configuration.GetConnectionString("TodoDbConn
 builder.Services.AddDbContext<TodoDbContext>(options =>
     options.UseSqlServer(todoConnectionString));
 
-builder.WebHost.UseKestrel(((context, options) =>
-{
-    options.Configure(context.Configuration.GetSection("Kestrel"))
-        .Endpoint("HTTPS", listenOptions =>
-    {
-        listenOptions.HttpsOptions.SslProtocols = SslProtocols.Tls13;
-    });
-}));
+// Ikke nødvendigt da Kestrel automatisk bruger appsettings, secrets etc. så længe paths er sat rigtigt op
+// Men beholdt som eksempel.
 
-string kestrelCertUrl = builder.Configuration.GetValue<string>("KestrelCertUrl")
-    .Replace("%USERPROFILE%", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+//builder.WebHost.UseKestrel(((context, options) =>
+//{
+//    options.Configure(context.Configuration.GetSection("Kestrel"))
+//        .Endpoint("HTTPS", listenOptions =>
+//    {
+//        listenOptions.HttpsOptions.SslProtocols = SslProtocols.Tls13;
+//    });
+//}));
 
-string kestrelCertPassword = builder.Configuration.GetValue<string>("KestrelCertPassword");
+//string kestrelCertUrl = builder.Configuration.GetValue<string>("KestrelCertUrl")
+//    .Replace("%USERPROFILE%", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 
-builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Path").Value = kestrelCertUrl;
-builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Password").Value = kestrelCertPassword;
+//string kestrelCertPassword = builder.Configuration.GetValue<string>("KestrelCertPassword");
+
+//builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Path").Value = kestrelCertUrl;
+//builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Password").Value = kestrelCertPassword;
 
 builder.Services.AddScoped<SymmetricalEncryption>();
 builder.Services.AddScoped<ASymmetricalEncryption>();
