@@ -1,0 +1,79 @@
+﻿@page "/CprNr"
+
+@using System.ComponentModel.DataAnnotations;
+@using H4.Day1.Identity.Codes
+@using H4.Day1.Identity.Data
+@using H4.Day1.Identity.Models
+@using Microsoft.AspNetCore.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject TodoDbContext ToDoContext;
+@inject HashingHandler HashingHandler;
+
+@attribute [Authorize(Policy = "AuthenticatedUser")]
+
+<h2 style="margin-top:20px;text-decoration:underline;">Validate CRP. NR.</h2>
+<div class="row">
+    <div class="col-md-2" style="margin:0 auto;">
+        <div style="margin-top:10px;">
+            &nbsp;&nbsp;User: <input type="text" value="@_userName" style="width:150px;border:none;background-color:transparent;text-align:center;" disabled />
+        </div>
+
+        <div>
+            Cpr-nr: <input type="text" @bind="CprNrUserInput" style="width:150px;" />
+        </div>
+
+        <div style="margin-top:10px;text-align:center;">
+            <button class="btn-primary" @onclick="btnSubmitCpr_clicked" style="width:100%;max-width:250px;height:45px;">Submit</button>
+        </div>
+
+        <div style="margin-top:10px;">
+            @if (_cprErrorMessage != null)
+            {
+                <div style="color: red; margin-top:5px;">@_cprErrorMessage</div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnCprVerified { get; set; }
+
+    private string? _userName;
+    [Required] public string CprNrUserInput { get; set; } = "";
+    private string? _cprErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userName = authState.User.Identity.Name;
+        CprNrUserInput = "";
+    }
+
+    private async Task btnSubmitCpr_clicked()
+    {
+        string hashedCprInput = HashingHandler.BCryptHashing2(CprNrUserInput);
+        var matchedUser = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName);
+        if (matchedUser == null)
+        {
+            var cpr = new Cpr
+            {
+                User = _userName,
+                CprNr = hashedCprInput
+            };
+            ToDoContext.Cprs.Add(cpr);
+            await ToDoContext.SaveChangesAsync();
+        }
+
+        matchedUser = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName);
+        bool hashedValueMatch = HashingHandler.BCryptVerifyHashing2(CprNrUserInput, matchedUser.CprNr);
+
+        if (hashedValueMatch)
+        {
+            await OnCprVerified.InvokeAsync();
+        }
+        else
+        {
+            _cprErrorMessage = "Cpr-nr er forkert!";
+        }
+    }
+}

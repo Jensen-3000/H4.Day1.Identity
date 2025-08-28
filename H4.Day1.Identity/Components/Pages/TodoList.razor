@@ -1,0 +1,87 @@
+﻿@using H4.Day1.Identity.Codes
+@using H4.Day1.Identity.Data
+@using H4.Day1.Identity.Models
+@using Microsoft.AspNetCore.Authorization
+
+@inject TodoDbContext ToDoContext;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject ASymmetricalEncryption Encryption
+
+@attribute [Authorize(Policy = "AuthenticatedUser")]
+
+<h2 style="margin-top:20px;text-decoration:underline;">To do list</h2>
+<div class="row" style="margin-top:40px;">
+    <div class="col-md-6" style="text-align:right;">
+        Add to-do item:
+    </div>
+    <div class="col-md-6" style="text-align:left;">
+        <input type="text" @bind="_toDoItem" style="width:150px;" />
+        <br />
+        <button class="btn-primary" @onclick="btnSubmitTodoItem_clicked" style="width:150px;height:45px;margin-top:4px;">Submit</button>
+    </div>
+</div>
+
+<div style="width:80%;margin-top:18px;margin:0 auto;text-align:left;">
+    @if (_todoListObj is { Count: > 0 })
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>My to do items</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_todoListObj is { Count: > 0 })
+                {
+                    @foreach (var item in _todoListObj)
+                    {
+                        <tr>
+                            <td>@item.Item</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private string? _toDoItem;
+    private string? _userName;
+    private List<Todolist>? _todoListObj = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userName = authState.User.Identity.Name;
+
+        var todoDbUser = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName);
+        if (todoDbUser != null)
+        {
+            var encryptedList = ToDoContext.Todolists.Where(x => x.UserId == todoDbUser.Id).ToList();
+
+            _todoListObj = encryptedList.Select(x => new Todolist {
+                Id = x.Id,
+                UserId = x.UserId,
+                Item = string.IsNullOrWhiteSpace(x.Item) ? "" : Encryption.DecryptASymmetrical(x.Item)
+            }).ToList();
+        }
+    }
+
+    private async Task btnSubmitTodoItem_clicked()
+    {
+        var logInUserId = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName).Id;
+
+        var encryptedItem = await Encryption.EncryptASymmetrical_WebApi(_toDoItem ?? "");
+        var todo = new Todolist { UserId = logInUserId, Item = encryptedItem };
+        ToDoContext.Todolists.Add(todo);
+        await ToDoContext.SaveChangesAsync();
+
+        var encryptedList = ToDoContext.Todolists.Where(x => x.UserId == logInUserId).ToList();
+        _todoListObj = encryptedList.Select(x => new Todolist {
+            Id = x.Id,
+            UserId = x.UserId,
+            Item = string.IsNullOrWhiteSpace(x.Item) ? "" : Encryption.DecryptASymmetrical(x.Item)
+        }).ToList();
+    }
+}

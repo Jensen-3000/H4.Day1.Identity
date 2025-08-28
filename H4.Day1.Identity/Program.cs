@@ -1,9 +1,8 @@
+using H4.Day1.Identity;
 using H4.Day1.Identity.Components;
 using H4.Day1.Identity.Components.Account;
-using H4.Day1.Identity.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,17 +22,15 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddSignInManager()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+// Extension methods for adding services
+builder.Services.AddApplicationDbContext(builder.Configuration);
+builder.Services.AddTodoDbContext(builder.Configuration);
+builder.Services.AddIdentityServices();
+builder.Services.AddEncryptionServices();
+builder.Services.AddAuthorizationPolicies();
+builder.Services.AddHttpClient();
+// See comment in DependencyInjection.cs why it's not used here
+//DependencyInjection.ConfigureKestrel(builder);
 
 var app = builder.Build();
 
@@ -50,7 +47,6 @@ else
 }
 
 app.UseHttpsRedirection();
-
 
 app.UseAntiforgery();
 

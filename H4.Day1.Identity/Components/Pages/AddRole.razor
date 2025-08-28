@@ -1,0 +1,36 @@
+﻿@page "/AddRole"
+@using H4.Day1.Identity.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@inject IServiceProvider ServiceProvider
+@inject UserManager<ApplicationUser> UserManager
+@attribute [Authorize(Policy = "RequireAdminRole")]
+
+<h3>AddRole</h3>
+
+<div>
+    User Email: <input @bind="_user" />
+    Role Name: <input @bind="_role" />
+    <button @onclick="CreateUserRoles">Add Role</button>
+</div>
+
+@code {
+    private string _user;
+    private string _role;
+
+    public async Task CreateUserRoles()
+    {
+        var roleManager = ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+        var userRoleCheck = await roleManager.RoleExistsAsync(_role);
+        //create the roles and seed them to the database
+        if (!userRoleCheck)
+            await roleManager.CreateAsync(new IdentityRole(_role));
+
+        var identityUser = await UserManager.FindByEmailAsync(_user);
+        if (identityUser is null)
+            return;
+
+        await UserManager.AddToRoleAsync(identityUser, _role);
+    }
+}
