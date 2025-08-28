@@ -23,8 +23,9 @@ public partial class TodoDbContext(DbContextOptions<TodoDbContext> options) : Db
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Item).HasMaxLength(500);
 
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.Todolist)
-                .HasForeignKey<Todolist>(d => d.Id)
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Todolists)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Todolist_Cpr");
         });

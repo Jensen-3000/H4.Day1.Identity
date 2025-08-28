@@ -8,5 +8,5 @@ public class Todolist
 
     public string Item { get; set; } = null!;
 
-    public virtual Cpr IdNavigation { get; set; } = null!;
+    public virtual Cpr User { get; set; } = null!;
 }

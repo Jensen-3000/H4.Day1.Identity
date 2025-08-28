@@ -8,5 +8,5 @@ public class Cpr
 
     public string CprNr { get; set; } = null!;
 
-    public virtual Todolist? Todolist { get; set; }
+    public virtual ICollection<Todolist> Todolists { get; set; } = new List<Todolist>();
 }
