@@ -1,8 +1,10 @@
 ﻿@page "/AddRole"
 @using H4.Day1.Identity.Data
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @inject IServiceProvider ServiceProvider
 @inject UserManager<ApplicationUser> UserManager
+@attribute [Authorize(Policy = "RequireAdminRole")]
 
 <h3>AddRole</h3>
 
