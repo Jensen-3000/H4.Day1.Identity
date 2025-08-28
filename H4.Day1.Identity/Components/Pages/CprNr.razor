@@ -1,12 +1,14 @@
 ﻿@page "/CprNr"
 
 @using System.ComponentModel.DataAnnotations;
+@using H4.Day1.Identity.Codes
 @using H4.Day1.Identity.Data
 @using H4.Day1.Identity.Models
 
 @inject AuthenticationStateProvider AuthenticationStateProvider;
 @inject TodoDbContext ToDoContext;
 @inject NavigationManager NavigationManager;
+@inject HashingHandler HashingHandler;
 
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "AuthenticatedUser")]
 
@@ -49,20 +51,21 @@
 
     private async Task btnSubmitCpr_clicked()
     {
+        string hashedCprInput = HashingHandler.BCryptHashing2(CprNrUserInput);
         var matchedUser = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName);
         if (matchedUser == null)
         {
             var cpr = new Cpr
             {
                 User = _userName,
-                CprNr = CprNrUserInput
+                CprNr = hashedCprInput
             };
             ToDoContext.Cprs.Add(cpr);
             ToDoContext.SaveChanges();
         }
-
+        
         matchedUser = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName);
-        bool hashedValueMatch = matchedUser.CprNr == CprNrUserInput;
+        bool hashedValueMatch = HashingHandler.BCryptVerifyHashing2(CprNrUserInput, matchedUser.CprNr);
 
         if (hashedValueMatch)
             NavigationManager.NavigateTo("/TodoList");
