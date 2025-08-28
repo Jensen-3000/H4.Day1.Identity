@@ -10,21 +10,38 @@ public class ASymmetricalEncryption
     private readonly IHttpClientFactory _httpClientFactory;
     private string _publicKey;
     private string _privateKey;
+    private const string KeyFolder = "Keys";
+    private const string PublicKeyFile = "Keys/public.key";
+    private const string PrivateKeyFile = "Keys/private.key";
 
     public ASymmetricalEncryption(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
-        using (RSA rsa = RSA.Create(2048))
-        {
-            byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
-            _privateKey = "-----BEGIN PRIVATE KEY-----\n" +
-                          Convert.ToBase64String(privateKeyBytes, Base64FormattingOptions.InsertLineBreaks) +
-                          "\n-----END PRIVATE KEY-----";
+        if (!Directory.Exists(KeyFolder))
+            Directory.CreateDirectory(KeyFolder);
 
-            byte[] publicKeyBytes = rsa.ExportSubjectPublicKeyInfo();
-            _publicKey = "-----BEGIN PUBLIC KEY-----\n" +
-                         Convert.ToBase64String(publicKeyBytes, Base64FormattingOptions.InsertLineBreaks) +
-                         "\n-----END PUBLIC KEY-----";
+        if (File.Exists(PublicKeyFile) && File.Exists(PrivateKeyFile))
+        {
+            _publicKey = File.ReadAllText(PublicKeyFile);
+            _privateKey = File.ReadAllText(PrivateKeyFile);
+        }
+        else
+        {
+            using (RSA rsa = RSA.Create(2048))
+            {
+                byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
+                _privateKey = "-----BEGIN PRIVATE KEY-----\n" +
+                              Convert.ToBase64String(privateKeyBytes, Base64FormattingOptions.InsertLineBreaks) +
+                              "\n-----END PRIVATE KEY-----";
+
+                byte[] publicKeyBytes = rsa.ExportSubjectPublicKeyInfo();
+                _publicKey = "-----BEGIN PUBLIC KEY-----\n" +
+                             Convert.ToBase64String(publicKeyBytes, Base64FormattingOptions.InsertLineBreaks) +
+                             "\n-----END PUBLIC KEY-----";
+
+                File.WriteAllText(PublicKeyFile, _publicKey);
+                File.WriteAllText(PrivateKeyFile, _privateKey);
+            }
         }
     }
 

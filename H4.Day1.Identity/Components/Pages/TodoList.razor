@@ -1,9 +1,11 @@
 ﻿@page "/TodoList"
+@using H4.Day1.Identity.Codes
+@using H4.Day1.Identity.Data
 @using H4.Day1.Identity.Models
 
-@inject Data.TodoDbContext _toDoContext;
-@inject AuthenticationStateProvider _authenticationStateProvider;
-@inject NavigationManager _navigationManager;
+@inject TodoDbContext ToDoContext;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject ASymmetricalEncryption Encryption
 
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "AuthenticatedUser")]
 
@@ -20,7 +22,7 @@
 </div>
 
 <div style="width:80%;margin-top:18px;margin:0 auto;text-align:left;">
-    @if (_TodoListObj != null && _TodoListObj.Count > 0)
+    @if (_todoListObj is { Count: > 0 })
     {
         <table class="table">
             <thead>
@@ -29,9 +31,9 @@
                 </tr>
             </thead>
             <tbody>
-                @if (_TodoListObj != null && _TodoListObj.Count > 0)
+                @if (_todoListObj is { Count: > 0 })
                 {
-                    @foreach (var item in _TodoListObj)
+                    @foreach (var item in _todoListObj)
                     {
                         <tr>
                             <td>@item.Item</td>
@@ -46,26 +48,40 @@
 @code {
     private string? _toDoItem;
     private string? _userName;
-    private List<Todolist>? _TodoListObj = new List<Todolist>();
+    private List<Todolist>? _todoListObj = [];
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _userName = authState.User.Identity.Name;
 
-        var todoDbUser = _toDoContext.Cprs.FirstOrDefault(x => x.User == _userName);
+        var todoDbUser = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName);
         if (todoDbUser != null)
-            _TodoListObj = _toDoContext.Todolists.Where(x => x.UserId == todoDbUser.Id).ToList();
+        {
+            var encryptedList = ToDoContext.Todolists.Where(x => x.UserId == todoDbUser.Id).ToList();
+
+            _todoListObj = encryptedList.Select(x => new Todolist {
+                Id = x.Id,
+                UserId = x.UserId,
+                Item = string.IsNullOrWhiteSpace(x.Item) ? "" : Encryption.DecryptASymmetrical(x.Item)
+            }).ToList();
+        }
     }
 
-    private void btnSubmitTodoItem_clicked()
+    private async Task btnSubmitTodoItem_clicked()
     {
-        var logInUserId = _toDoContext.Cprs.FirstOrDefault(x => x.User == _userName).Id;
+        var logInUserId = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName).Id;
 
-        var todo = new Todolist { UserId = logInUserId, Item = _toDoItem };
-        _toDoContext.Todolists.Add(todo);
-        _toDoContext.SaveChanges();
+        var encryptedItem = await Encryption.EncryptASymmetrical_WebApi(_toDoItem ?? "");
+        var todo = new Todolist { UserId = logInUserId, Item = encryptedItem };
+        ToDoContext.Todolists.Add(todo);
+        await ToDoContext.SaveChangesAsync();
 
-        _TodoListObj = _toDoContext.Todolists.Where(x => x.UserId == logInUserId).ToList();
+        var encryptedList = ToDoContext.Todolists.Where(x => x.UserId == logInUserId).ToList();
+        _todoListObj = encryptedList.Select(x => new Todolist {
+            Id = x.Id,
+            UserId = x.UserId,
+            Item = string.IsNullOrWhiteSpace(x.Item) ? "" : Encryption.DecryptASymmetrical(x.Item)
+        }).ToList();
     }
 }
