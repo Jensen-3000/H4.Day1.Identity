@@ -47,21 +47,35 @@ public class ASymmetricalEncryption
 
     public string DecryptASymmetrical(string textToDecrypt)
     {
-        using RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+        if (string.IsNullOrWhiteSpace(textToDecrypt))
+            return string.Empty;
 
-        string privateKey = _privateKey
-            .Replace("-----BEGIN PRIVATE KEY-----", "")
-            .Replace("-----END PRIVATE KEY-----", "")
-            .Replace("\n", "").Replace("\r", "").Trim();
+        try
+        {
+            using RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
 
-        byte[] privateKeyBytes = Convert.FromBase64String(privateKey);
-        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+            string privateKey = _privateKey
+                .Replace("-----BEGIN PRIVATE KEY-----", "")
+                .Replace("-----END PRIVATE KEY-----", "")
+                .Replace("\n", "").Replace("\r", "").Trim();
 
-        byte[] byteArrayTextToDecrypt = Convert.FromBase64String(textToDecrypt);
-        byte[] decryptedDataAsByteArray = rsa.Decrypt(byteArrayTextToDecrypt, true);
-        string decryptedDataAsString = Encoding.UTF8.GetString(decryptedDataAsByteArray);
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKey);
+            rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
 
-        return decryptedDataAsString;
+            byte[] byteArrayTextToDecrypt = Convert.FromBase64String(textToDecrypt);
+            byte[] decryptedDataAsByteArray = rsa.Decrypt(byteArrayTextToDecrypt, true);
+            string decryptedDataAsString = Encoding.UTF8.GetString(decryptedDataAsByteArray);
+
+            return decryptedDataAsString;
+        }
+        catch (CryptographicException)
+        {
+            return "[Decryption failed]";
+        }
+        catch (FormatException)
+        {
+            return "[Invalid data format]";
+        }
     }
 
     // Encrypt should be inside WebApi, you shouldn't place encrypt and decrypt in the same app
