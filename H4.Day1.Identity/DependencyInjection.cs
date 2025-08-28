@@ -1,7 +1,9 @@
 ﻿using H4.Day1.Identity.Codes;
+using H4.Day1.Identity.Components.Account;
 using H4.Day1.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace H4.Day1.Identity;
 
@@ -9,10 +11,13 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplicationDbContext(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-                               ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        var connectionString = configuration.GetConnectionString("ApplicationDbConnection")
+                               ?? throw new InvalidOperationException("Connection string 'ApplicationDbConnection' not found.");
 
-        services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(connectionString,
+                o => o.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "AppDb")));
+
         services.AddDatabaseDeveloperPageExceptionFilter();
 
         return services;
@@ -23,7 +28,8 @@ public static class DependencyInjection
         var todoConnectionString = configuration.GetConnectionString("TodoDbConnection")
                                    ?? throw new InvalidOperationException("Connection string 'TodoDbConnection' not found.");
 
-        services.AddDbContext<TodoDbContext>(options => options.UseSqlServer(todoConnectionString));
+        services.AddDbContext<TodoDbContext>(options => options.UseSqlServer(todoConnectionString,
+            o => o.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "TodoDb")));
 
         return services;
     }
