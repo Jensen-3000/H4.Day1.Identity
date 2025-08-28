@@ -36,6 +36,8 @@ public static class DependencyInjection
             .AddSignInManager()
             .AddDefaultTokenProviders();
 
+        services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
         services.Configure<IdentityOptions>(options =>
         {
             options.Password.RequiredLength = 8;
