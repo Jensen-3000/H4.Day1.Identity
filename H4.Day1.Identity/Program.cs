@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using H4.Day1.Identity;
 using H4.Day1.Identity.Components;
 using H4.Day1.Identity.Components.Account;
@@ -5,6 +6,17 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Tilføjet for at kunne opnå at den skal crashe ved iis brug.
+// Ellers virker den fint uden.
+builder.WebHost.UseKestrel((context, serverOptions) =>
+{
+    serverOptions.Configure(context.Configuration.GetSection("Kestrel"))
+        .Endpoint("HTTPS", listenOptions =>
+        {
+            listenOptions.HttpsOptions.SslProtocols = SslProtocols.Tls12;
+        });
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
