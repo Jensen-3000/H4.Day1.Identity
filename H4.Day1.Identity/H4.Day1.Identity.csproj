@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Folder Include="Cert\" />
+    <Folder Include="Keys\" />
   </ItemGroup>
 
 </Project>
