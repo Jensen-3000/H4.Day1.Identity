@@ -13,7 +13,7 @@
             <AuthorizeView>
                 <Authorized>
                     <NavLink href="Account/Manage">
-                        @if (_userRoles != null && _userRoles.Trim() != "")
+                        @if (_userRoles != null && _userRoles.Trim() == "Admin")
                         {
                             <span aria-hidden="true"></span> 
                             @context.User.Identity?.Name<text>&nbsp;(@_userRoles)</text>
