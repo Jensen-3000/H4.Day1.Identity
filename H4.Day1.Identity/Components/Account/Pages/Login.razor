@@ -74,7 +74,7 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo("/CprNr");
+            RedirectManager.RedirectTo("/");
         }
         else if (result.RequiresTwoFactor)
         {
