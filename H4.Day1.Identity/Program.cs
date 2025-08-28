@@ -1,4 +1,5 @@
 using System.Security.Authentication;
+using H4.Day1.Identity.Codes;
 using H4.Day1.Identity.Components;
 using H4.Day1.Identity.Components.Account;
 using H4.Day1.Identity.Data;
@@ -72,6 +73,11 @@ string kestrelCertPassword = builder.Configuration.GetValue<string>("KestrelCert
 
 builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Path").Value = kestrelCertUrl;
 builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Password").Value = kestrelCertPassword;
+
+builder.Services.AddScoped<SymmetricalEncryption>();
+builder.Services.AddScoped<ASymmetricalEncryption>();
+builder.Services.AddScoped<HashingHandler>();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

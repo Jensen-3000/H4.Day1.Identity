@@ -1,8 +1,13 @@
 ﻿@page "/"
+@using System.Text
+@using H4.Day1.Identity.Codes
 @using Microsoft.AspNetCore.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @* @attribute [Authorize(Policy = "AuthenticatedUser")] *@
 @attribute [Authorize(Policy = "RequireAdminRole")]
+@inject HashingHandler HashingHandler
+@inject SymmetricalEncryption SymmetricalEncryption
+@inject ASymmetricalEncryption ASymmetricalEncryption
 
 <PageTitle>Home</PageTitle>
 
@@ -52,6 +57,51 @@ else
     private bool _isAdmin;
     protected override async Task OnInitializedAsync()
     {
+        // MD5
+        // string valueToHash1 = "Hello World!";
+        // string hashedValue = HashingHandler.MD5Hashing(valueToHash1);
+
+        // string valueToHash2 = "Hello World!";
+        // string hashedValue2 = HashingHandler.MD5Hashing(valueToHash2);
+
+        // bool isMatch = hashedValue == hashedValue2;
+
+        // SHA256
+        // string valueToHash1 = "Hello World!";
+        // string hashedValue = HashingHandler.Sha256Hashing(valueToHash1);
+
+        // string valueToHash2 = "Hello World!";
+        // string hashedValue2 = HashingHandler.Sha256Hashing(valueToHash2);
+
+        // bool isMatch = hashedValue == hashedValue2;
+
+        // PBKDF2
+        // string valueToHash1 = "Hello World!";
+        // byte[] valueToHash1AsByte = Encoding.UTF8.GetBytes(valueToHash1);
+        // byte[] hashedValue1 = HashingHandler.PBKDF2Hashing(valueToHash1AsByte);
+
+        // string valueToHash2 = "Hello World!";
+        // byte[] valueToHash2AsByte = Encoding.UTF8.GetBytes(valueToHash2);
+        // byte[] hashedValue2 = HashingHandler.PBKDF2Hashing(valueToHash2AsByte);
+
+        // bool isMatch = hashedValue1.SequenceEqual(hashedValue2);
+
+        // BCrypt
+        // string valueToHash1 = "Hello World!";
+        // string hashedValue1 = HashingHandler.BCryptHashing(valueToHash1);
+
+        // string valueToHash2 = "Hello World!";
+        // bool isMatch = HashingHandler.VerifyBCryptHash(valueToHash2, hashedValue1);
+
+
+        // string textToEncrypt = "Hello World!";
+        // var encryptedText = SymmetricalEncryption.Encrypt(textToEncrypt);
+        // var decryptedText = SymmetricalEncryption.Decrypt(encryptedText);
+        string textToEncrypt = "Køb mælk";
+        string encryptedText = await ASymmetricalEncryption.EncryptASymmetrical_WebApi(textToEncrypt);
+
+        string decryptedText = ASymmetricalEncryption.DecryptASymmetrical(encryptedText);
+
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _isAuthenticated = user.Identity?.IsAuthenticated ?? false;
