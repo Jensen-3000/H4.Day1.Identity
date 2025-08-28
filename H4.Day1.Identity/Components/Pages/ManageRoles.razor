@@ -1,0 +1,75 @@
+@page "/ManageRoles"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@inject IServiceProvider ServiceProvider
+@attribute [Authorize(Policy = "RequireAdminRole")]
+
+
+<h3>Manage Roles</h3>
+
+<div>
+    <input @bind="_newRoleName" @bind:event="oninput" placeholder="New role name" />
+    <button @onclick="AddRoleAsync" disabled="@string.IsNullOrWhiteSpace(_newRoleName)">Add Role</button>
+</div>
+
+@if (_roles is null)
+{
+    <p>Loading roles...</p>
+}
+else if (!_roles.Any())
+{
+    <p>No roles added yet.</p>
+}
+else
+{
+    <ul>
+        @foreach (var role in _roles)
+        {
+            <li>
+                @role
+                <button @onclick="() => RemoveRoleAsync(role)">Remove</button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<string>? _roles;
+    private string _newRoleName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRolesAsync();
+    }
+
+    private async Task LoadRolesAsync()
+    {
+        var roleManager = ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        _roles = await Task.Run(() => roleManager.Roles.Select(r => r.Name!).ToList());
+    }
+
+    private async Task AddRoleAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newRoleName))
+            return;
+
+        var roleManager = ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        if (!await roleManager.RoleExistsAsync(_newRoleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole(_newRoleName));
+            await LoadRolesAsync();
+        }
+        _newRoleName = string.Empty;
+    }
+
+    private async Task RemoveRoleAsync(string roleName)
+    {
+        var roleManager = ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var role = await roleManager.FindByNameAsync(roleName);
+        if (role is not null)
+        {
+            await roleManager.DeleteAsync(role);
+            await LoadRolesAsync();
+        }
+    }
+}
