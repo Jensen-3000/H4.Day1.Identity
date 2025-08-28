@@ -1,13 +1,13 @@
-﻿@page "/TodoList"
-@using H4.Day1.Identity.Codes
+﻿@using H4.Day1.Identity.Codes
 @using H4.Day1.Identity.Data
 @using H4.Day1.Identity.Models
+@using Microsoft.AspNetCore.Authorization
 
 @inject TodoDbContext ToDoContext;
 @inject AuthenticationStateProvider AuthenticationStateProvider;
 @inject ASymmetricalEncryption Encryption
 
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "AuthenticatedUser")]
+@attribute [Authorize(Policy = "AuthenticatedUser")]
 
 <h2 style="margin-top:20px;text-decoration:underline;">To do list</h2>
 <div class="row" style="margin-top:40px;">

@@ -5,7 +5,6 @@
 <AuthorizeView Roles="Admin">
     <Authorized>
         <div>You are Admin!</div>
-        
     </Authorized>
 </AuthorizeView>
 
@@ -13,8 +12,20 @@
     <div>You are a normal user!</div>
 </AuthorizeView>
 
-<CprNr></CprNr>
+@if (!_cprVerified)
+{
+    <CprNr OnCprVerified="HandleCprVerified" />
+}
+else
+{
+    <TodoList />
+}
 
 @code {
+    private bool _cprVerified = false;
 
+    private void HandleCprVerified()
+    {
+        _cprVerified = true;
+    }
 }

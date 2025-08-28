@@ -4,13 +4,12 @@
 @using H4.Day1.Identity.Codes
 @using H4.Day1.Identity.Data
 @using H4.Day1.Identity.Models
-
+@using Microsoft.AspNetCore.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider;
 @inject TodoDbContext ToDoContext;
-@inject NavigationManager NavigationManager;
 @inject HashingHandler HashingHandler;
 
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "AuthenticatedUser")]
+@attribute [Authorize(Policy = "AuthenticatedUser")]
 
 <h2 style="margin-top:20px;text-decoration:underline;">Validate CRP. NR.</h2>
 <div class="row">
@@ -37,6 +36,8 @@
 </div>
 
 @code {
+    [Parameter] public EventCallback OnCprVerified { get; set; }
+
     private string? _userName;
     [Required] public string CprNrUserInput { get; set; } = "";
     private string? _cprErrorMessage;
@@ -44,8 +45,7 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        _userName = user.Identity.Name;
+        _userName = authState.User.Identity.Name;
         CprNrUserInput = "";
     }
 
@@ -61,15 +61,19 @@
                 CprNr = hashedCprInput
             };
             ToDoContext.Cprs.Add(cpr);
-            ToDoContext.SaveChanges();
+            await ToDoContext.SaveChangesAsync();
         }
-        
+
         matchedUser = ToDoContext.Cprs.FirstOrDefault(x => x.User == _userName);
         bool hashedValueMatch = HashingHandler.BCryptVerifyHashing2(CprNrUserInput, matchedUser.CprNr);
 
         if (hashedValueMatch)
-            NavigationManager.NavigateTo("/TodoList");
+        {
+            await OnCprVerified.InvokeAsync();
+        }
         else
+        {
             _cprErrorMessage = "Cpr-nr er forkert!";
+        }
     }
 }
