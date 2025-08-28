@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/teacher"
 @using System.Text
 @using H4.Day1.Identity.Codes
 @using Microsoft.AspNetCore.Authorization
@@ -97,10 +97,10 @@ else
         // string textToEncrypt = "Hello World!";
         // var encryptedText = SymmetricalEncryption.Encrypt(textToEncrypt);
         // var decryptedText = SymmetricalEncryption.Decrypt(encryptedText);
-        string textToEncrypt = "Køb mælk";
-        string encryptedText = await ASymmetricalEncryption.EncryptASymmetrical_WebApi(textToEncrypt);
+        // string textToEncrypt = "Køb mælk";
+        // string encryptedText = await ASymmetricalEncryption.EncryptASymmetrical_WebApi(textToEncrypt);
 
-        string decryptedText = ASymmetricalEncryption.DecryptASymmetrical(encryptedText);
+        // string decryptedText = ASymmetricalEncryption.DecryptASymmetrical(encryptedText);
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;

@@ -1,0 +1,20 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "AuthenticatedUser")]
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div>You are Admin!</div>
+        
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="User">
+    <div>You are a normal user!</div>
+</AuthorizeView>
+
+<CprNr></CprNr>
+
+@code {
+
+}
