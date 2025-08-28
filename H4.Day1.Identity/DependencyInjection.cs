@@ -39,7 +39,11 @@ public static class DependencyInjection
         services.Configure<IdentityOptions>(options =>
         {
             options.Password.RequiredLength = 8;
+            options.Password.RequireDigit = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
         });
+
         return services;
     }
 
