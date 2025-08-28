@@ -52,6 +52,7 @@ $pwd = ConvertTo-SecureString -String "Jensen@1" -Force -AsPlainText
 Export-PfxCertificate -Cert $cert -FilePath "$env:USERPROFILE\.aspnet\https\MyBlazorApp.pfx" -Password $pwd
 ```
 - Installer certifikatet i både Personal og Trusted stores (CurrentUser).
+- Det kan gøres med `certmgr.msc` kommandoen. Og så ellers copy-paste fra personal ind i trusted root.
 
 Flyt den oprettede `.pfx` fil til projektets `Cert`-mappe.
 
